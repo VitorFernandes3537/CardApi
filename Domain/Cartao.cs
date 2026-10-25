@@ -28,7 +28,7 @@ public class Cartao
             throw new ArgumentException("O final deve conter apenas dígitos.", nameof(final));
 
         if (!Enum.IsDefined(bandeira))
-            throw new ArgumentOutOfRangeException(nameof(bandeira), bandeira,  $"A Bandeira informada não é válida.");
+            throw new ArgumentOutOfRangeException(nameof(bandeira), bandeira,  "A Bandeira informada não é válida.");
 
         Final = final;
         Bandeira = bandeira;
