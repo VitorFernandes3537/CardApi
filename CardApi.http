@@ -1,6 +1,9 @@
-@CardApi_HostAddress = http://localhost:5114
+@host = http://localhost:5114
 
-GET {{CardApi_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{host}}/clientes
+Content-Type: application/json
 
-###
+{
+  "nome": "Ana Souza",
+  "cpf": "123.456.789-00"
+}
