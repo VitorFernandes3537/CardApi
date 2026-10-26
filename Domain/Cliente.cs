@@ -34,7 +34,7 @@ public class Cliente
     public Cartao AdicionarCartao(decimal limite, Bandeira bandeira, string final)
     {
         if (_cartoes.Count >= LimiteDeCartoes)
-            throw new InvalidOperationException($"O Cliente pode ter no máximo {LimiteDeCartoes} cartões.");
+            throw new DomainException($"O Cliente pode ter no máximo {LimiteDeCartoes} cartões.");
 
         Cartao novoCartao = new Cartao(limite, bandeira, final);
 
