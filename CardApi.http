@@ -1,9 +1,151 @@
 @host = http://localhost:5114
 
+### ============ CLIENTES ============
+
+### 1. Cria cliente → 201 + Location
+# @name criarCliente
 POST {{host}}/clientes
 Content-Type: application/json
 
 {
-  "nome": "Ana Souza",
-  "cpf": "123.456.789-00"
+  "nome": "Bruno Lima",
+  "cpf": "987.654.156-00"
+}
+
+### 2. Busca o cliente criado → 200, cartoes: []
+GET {{host}}/clientes/{{criarCliente.response.body.id}}
+
+### 3. Cliente inexistente → 404 em ProblemDetails (seu método executou)
+GET {{host}}/clientes/999
+
+### 4. Id não numérico → 404 sem corpo (a rota nem casou)
+GET {{host}}/clientes/abc
+
+### 5. CPF com 10 dígitos → 500 por enquanto (guard do domínio)
+POST {{host}}/clientes
+Content-Type: application/json
+
+{
+  "nome": "Carla",
+  "cpf": "123.456.789-0"
+}
+
+### 6. CPF com letra → 500 por enquanto (regra "só dígitos")
+POST {{host}}/clientes
+Content-Type: application/json
+
+{
+  "nome": "Carla",
+  "cpf": "123.456.789-0a"
+}
+
+### 7. CPF DUPLICADO (mesmo do teste 1) → 500 por enquanto (índice único no banco)
+POST {{host}}/clientes
+Content-Type: application/json
+
+{
+  "nome": "Bruno Clone",
+  "cpf": "98765432100"
+}
+
+### ============ CARTÕES ============
+
+### 8. Cartão 1 → 201 + Location /cartoes/{id}
+# @name cartao1
+POST {{host}}/clientes/{{criarCliente.response.body.id}}/cartoes
+Content-Type: application/json
+
+{
+  "limite": 1500.50,
+  "bandeira": "Elo",
+  "final": "0042"
+}
+
+### 9. Busca o cartão criado pelo Location → 200
+GET {{host}}/cartoes/{{cartao1.response.body.id}}
+
+### 10. Cartão 2 → 201
+POST {{host}}/clientes/{{criarCliente.response.body.id}}/cartoes
+Content-Type: application/json
+
+{
+  "limite": 3000,
+  "bandeira": "BaneseCard",
+  "final": "1234"
+}
+
+### 11. Cartão 3 → 201
+POST {{host}}/clientes/{{criarCliente.response.body.id}}/cartoes
+Content-Type: application/json
+
+{
+  "limite": 500,
+  "bandeira": "Elo",
+  "final": "9876"
+}
+
+### 12. Cartão 4 → 500 por enquanto (regra de no máximo 3)
+POST {{host}}/clientes/{{criarCliente.response.body.id}}/cartoes
+Content-Type: application/json
+
+{
+  "limite": 800,
+  "bandeira": "Elo",
+  "final": "5555"
+}
+
+### 13. Cliente agora com 3 cartões → 200
+GET {{host}}/clientes/{{criarCliente.response.body.id}}
+
+### ============ VALIDAÇÕES DO CARTÃO ============
+### (usam o cliente 1, a Ana; ela precisa ter menos de 3 cartões)
+
+### 14. Bandeira inexistente "Visa" → 400 automático, na borda
+POST {{host}}/clientes/1/cartoes
+Content-Type: application/json
+
+{
+  "limite": 1000,
+  "bandeira": "Visa",
+  "final": "1111"
+}
+
+### 15. Bandeira 99 → passa a borda, cai no Enum.IsDefined → 500 por enquanto
+POST {{host}}/clientes/1/cartoes
+Content-Type: application/json
+
+{
+  "limite": 1000,
+  "bandeira": 99,
+  "final": "1111"
+}
+
+### 16. Final com 2 dígitos → 500 por enquanto
+POST {{host}}/clientes/1/cartoes
+Content-Type: application/json
+
+{
+  "limite": 1000,
+  "bandeira": "Elo",
+  "final": "42"
+}
+
+### 17. Limite zero → 500 por enquanto
+POST {{host}}/clientes/1/cartoes
+Content-Type: application/json
+
+{
+  "limite": 0,
+  "bandeira": "Elo",
+  "final": "1111"
+}
+
+### 18. Cartão para cliente inexistente → 404
+POST {{host}}/clientes/999/cartoes
+Content-Type: application/json
+
+{
+  "limite": 1000,
+  "bandeira": "Elo",
+  "final": "1111"
 }

@@ -32,4 +32,16 @@ public class ClientesController(AppDbContext db) : ControllerBase
 
     }
 
+    [HttpPost("{id:int}/cartoes")]
+    public async Task<ActionResult<CartaoResponse>> Criar(CriarCartaoResquest request, int id, CancellationToken ct)
+    {
+        var cliente = await db.Clientes.Include(c => c.Cartoes).FirstOrDefaultAsync(c => c.Id == id, ct);
+        if (cliente is null)
+            return NotFound();
+
+        var cartao = cliente.AdicionarCartao(request.Limite, request.Bandeira, request.Final);
+        await db.SaveChangesAsync(ct);
+
+        return CreatedAtAction(nameof(CartaoController.BuscarCartaoPorId), nameof(CartaoController).Replace("Controller", ""), new { id = cartao.Id }, cartao.ToResponse());
+    }
 }
